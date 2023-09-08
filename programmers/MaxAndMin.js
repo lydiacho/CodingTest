@@ -20,5 +20,3 @@ function solution(s) {
   answer += Math.max(...array).toString() + " " + Math.min(...array).toString();
   return answer;
 }
-
-console.log(solution("1 2 3 4"));
