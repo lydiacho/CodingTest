@@ -57,3 +57,13 @@ function solution(numbers) {
 - 출력해보니 숫자가 너무 커질 경우 변환 과정에서 '과학적 표기법'으로 바뀜 
 -> 숫자 변환을 거쳐야하는 케이스는 0인 경우밖에 없고, 내림차순 정렬 시 [0]이 0이라는 것은 뒤에가 다 0이라는 것이므로 해당 경우는 "0"을 바로 리턴해버린다 
 */
+
+/* 베스트 답안 : 
+function solution(numbers) {
+    var answer = numbers.map(v=>v+'')
+                        .sort((a,b) => (b+a)*1 - (a+b)*1)
+                        .join('');
+
+    return answer[0]==='0'?'0':answer;
+}
+*/
