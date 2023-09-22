@@ -22,5 +22,3 @@ function solution(answers) {
     (_, idx) => correct[idx] === Math.max(correct[0], correct[1], correct[2])
   );
 }
-
-console.log(solution([1, 3, 2, 4, 2]));
