@@ -28,4 +28,6 @@ function solution(friends, gifts) {
   }
 
   return Math.max(...howMany);
+  console.log("먀먀");
+  console.log("으으")
 }
