@@ -3,8 +3,8 @@
 // sol
 // 오름차순으로 정렬한 배열 만들어서 max 값 관리 
 // 큐를 순회하면서 max값이 나올 때까지 pop, push 
-// max값이 나오면 pop
-const MAX = 100;
+// max값이 나오면 pop 
+const MAX = 101; // 문제 제한사항을 잘 확인하자! (100으로 하면 실패)
 class Queue {
     constructor() {
         this.q = new Array(MAX).fill(0);
@@ -54,5 +54,3 @@ function solution(priorities, location) {
     return count;
     
 }
-
-// 90점 (테케 1,2번 실패)
