@@ -3,30 +3,35 @@
 // output : 점수 최댓값
 
 // 과제마감일이 가장 조금 남은 과제부터 + 과제마감일이 같은 경우 점수가 큰 과제부터 -> X 실패.
+// 가장 높은 점수를 가장 늦게 할 수 있는 날로 고정
+
+// ⭐️ 위의 문제풀이 아이디어를 떠올리는게 핵심.
 
 const fs = require("fs");
-const [_, ...arr] = fs.readFileSync(0).toString().trim().split("\n");
+const [n, ...arr] = fs.readFileSync(0).toString().trim().split("\n");
 const work = arr.map((v) => v.split(" ").map((w) => +w));
 
-const solution = (work) => {
-  let score = 0;
+const solution = (n, work) => {
+  const days = new Array(+n).fill(0);
 
-  //work 순회하면서 d의 오름차순 -> w의 내림차순으로 정렬.
+  //우선순위 : work 순회하면서 w의 내림차순 -> d의 오름차순으로 정렬.
   work.sort(([ad, aw], [bd, bw]) => {
-    if (ad === bd) {
-      return bw - aw;
+    if (bw === aw) {
+      return ad - bd;
     }
-    return ad - bd;
+    return bw - aw;
   });
-  console.log(work);
-  let pass = 0;
+
   work.forEach(([d, w]) => {
-    if (pass === d) return;
-    score += w;
-    pass++;
-    console.log(pass, score);
+    // 만약 마지막날에 이미 더 큰 점수가 차있으면 일자 당겨서 저장
+    for (let i = d; i > 0; i--) {
+      if (days[i] > 0) continue;
+      days[i] = w;
+      break;
+    }
   });
-  return score;
+
+  return days.reduce((acc, curr) => acc + curr, 0);
 };
 
-console.log(solution(work));
+console.log(solution(n, work));
