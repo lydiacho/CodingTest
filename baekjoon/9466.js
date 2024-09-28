@@ -23,33 +23,31 @@ while (t--) {
   const finished = new Array(n + 1).fill(false);
 
   const dfs = (idx) => {
-    if (visited[idx] && finished[idx]) {
-      // visited, finished 모두 true -> 이미 살펴볼필요없이 사이클 여지X
-      return;
-    }
-    // 0. 이미 방문한 친구면 사이클 발생 감지
-    if (visited[idx] && !finished[idx]) {
-      // 지금부터 연결된 애들 쭉 순회하면서 사이클 표시
-      let i = idx;
-      while (!isCycled[i]) {
-        isCycled[i] = true;
-        i = arr[i];
-      }
+    // 아직 방문하지 않은 노드
+    if (!visited[idx]) {
+      visited[idx] = true;
+      dfs(arr[idx]);
       finished[idx] = true;
       return;
     }
-    // 1. 방문체크
-    visited[idx] = true;
-    // 2. 방향따라 노드 이동
-    dfs(arr[idx]);
-    // 3. 종료체크
-    finished[idx] = true;
+    // 방문완료 + 검사종료 : pass
+    if (finished[idx]) {
+      return;
+    }
+    // 방문완료 + 검사종료X : cycle 발생 -> 사이클에 포함된 모든 노드 기록
+    let i = idx;
+    while (!isCycled[i]) {
+      isCycled[i] = true;
+      i = arr[i];
+    }
   };
 
   const solution = () => {
     // 싸이클에 속하지 못한 노드 수 구하기
     for (let i = 1; i < n + 1; i++) {
-      dfs(i);
+      if (!visited[i]) {
+        dfs(i);
+      }
     }
 
     return isCycled.filter((v) => !v).length - 1;
