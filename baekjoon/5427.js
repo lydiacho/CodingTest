@@ -10,20 +10,17 @@
 // 만약 현재 위치가 1) 건물의 모서리이고 2) 빈공간'.'이면 -> 탈출
 // 관건 : 불 번지는 것을 어떻게 관리할 것이냐.
 
+// 🧨 메모리/시간초과 개선 : queue 초기 크기 설정 안하되, 매번 shift하지 않도록 head 과 tail 인덱스를 관리함.
+
 class Queue {
   constructor() {
-    this.queue;
-    this.head;
-    this.tail;
-  }
-  init() {
-    this.queue = Array.from({ length: 1000000 }, () => []);
+    this.queue = [];
     this.head = 0;
     this.tail = 0;
   }
 
   push(v) {
-    this.queue[this.tail] = v;
+    this.queue.push(v);
     this.tail++;
   }
 
@@ -42,14 +39,7 @@ const fs = require("fs");
 const [T, ...rest] = fs.readFileSync(0).toString().trim().split("\n");
 let t = +T;
 
-// 메모리 초과 방지
-const q = new Queue();
-const fireQ = new Queue();
-
 while (t--) {
-  q.init();
-  fireQ.init();
-
   const [w, h] = rest
     .splice(0, 1)[0]
     .split(" ")
@@ -57,8 +47,11 @@ while (t--) {
   const grid = rest.splice(0, h).map((v) => v.split(""));
 
   const solution = () => {
+    const q = new Queue();
+    const fireQ = new Queue();
+
     const visited = Array.from({ length: h }, () =>
-      Array.from({ length: w }, () => false)
+      Array.from({ length: w }, () => 0)
     );
 
     // 불 배열 초기화, 첫 위치 push
@@ -66,14 +59,17 @@ while (t--) {
       for (let j = 0; j < w; j++) {
         if (grid[i][j] === "*") {
           fireQ.push([i, j]);
+          visited[i][j] = 1;
         } else if (grid[i][j] === "@") {
           q.push([i, j]);
-          visited[i][j] = true;
+          visited[i][j] = 2;
+        } else if (grid[i][j] === "#") {
+          visited[i][j] = 1;
         }
       }
     }
 
-    // bfs
+    // bfs 실행
     let count = 0;
     const dir = [
       [0, 1],
@@ -81,28 +77,27 @@ while (t--) {
       [1, 0],
       [-1, 0],
     ];
-    while (q.size() > 0) {
-      // 불 번짐 => 새로 번진 애들만
-      const fireSize = fireQ.size();
-      for (let i = 0; i < fireSize; i++) {
-        const [x, y] = fireQ.pop(); // 여기 수정
+
+    while (fireQ.size() || q.size()) {
+      // 불 번짐
+      for (let i = fireQ.size(); i > 0; i--) {
+        const [x, y] = fireQ.pop();
         dir.forEach(([dx, dy]) => {
+          const [newx, newy] = [x + dx, y + dy];
           if (
-            x + dx < 0 ||
-            x + dx >= h ||
-            y + dy < 0 ||
-            y + dy >= w ||
-            grid[x + dx][y + dy] === "#" ||
-            grid[x + dx][y + dy] === "*"
+            newx < 0 ||
+            newx >= h ||
+            newy < 0 ||
+            newy >= w ||
+            visited[newx][newy] === 1
           )
             return;
-          grid[x + dx][y + dy] = "*";
-          fireQ.push([x + dx, y + dy]);
+          visited[newx][newy] = 1;
+          fireQ.push([newx, newy]);
         });
       }
 
-      let size = q.size();
-      for (let i = 0; i < size; i++) {
+      for (let i = q.size(); i > 0; i--) {
         const [nowx, nowy] = q.pop();
         // 종료 조건
         if (nowx === 0 || nowx === h - 1 || nowy === 0 || nowy === w - 1)
@@ -111,11 +106,9 @@ while (t--) {
         dir.forEach(([dx, dy]) => {
           const x = nowx + dx;
           const y = nowy + dy;
-          if (x < 0 || x >= h || y < 0 || y >= w) return;
-          if (!visited[x][y] && grid[x][y] !== "*" && grid[x][y] !== "#") {
-            q.push([x, y]);
-            visited[x][y] = true;
-          }
+          if (x < 0 || x >= h || y < 0 || y >= w || visited[x][y]) return;
+          q.push([x, y]);
+          visited[x][y] = 2;
         });
       }
       count++;
