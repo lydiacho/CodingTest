@@ -5,29 +5,22 @@
 
 // N부터 세가지 연산을 모두 계산하기를 반복 -> 단, 메모이제이션을 통해 시간 절약
 
+// 🧨 재귀호출 사용 시 런타임에러가 발생해 반복문 사용하도록 수정
+
 const fs = require("fs");
-const n = fs.readFileSync(0).toString().trim();
-
-const mem = new Array(1000001).fill(-1);
-
-// dp가 하는 일 : n까지 가능한 연산 중 최소 횟수 구하기
-const dp = (n) => {
-  if (n === 1) return 0;
-  if (mem[n] !== -1) return mem[n];
-
-  let res = dp(n - 1);
-  if (n % 3 === 0) {
-    res = Math.min(res, dp(n / 3));
-  }
-  if (n % 2 === 0) {
-    res = Math.min(res, dp(n / 2));
-  }
-
-  return (mem[n] = res + 1);
-};
+const N = fs.readFileSync(0).toString().trim();
 
 const solution = (n) => {
-  return dp(n);
+  const mem = new Array(1000001).fill(-1);
+  mem[1] = 0;
+
+  for (let i = 1; i < n; i++) {
+    const newVal = mem[i] + 1;
+    mem[i + 1] = mem[i + 1] !== -1 ? Math.min(mem[i + 1], newVal) : newVal;
+    mem[i * 2] = mem[i * 2] !== -1 ? Math.min(mem[i * 2], newVal) : newVal;
+    mem[i * 3] = mem[i * 3] !== -1 ? Math.min(mem[i * 3], newVal) : newVal;
+  }
+  return mem[n];
 };
 
-console.log(solution(+n));
+console.log(solution(+N));
