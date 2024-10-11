@@ -1,78 +1,60 @@
-// 격차판에 배추가 곳곳에 심어져 있음. 지렁이는 인접한 배추만 지나감.
-// 지렁이가 모든 배추를 지나가야함.필요한 최소한의 지렁이 개수는?
-// input : 테케 개수 T, 배추밭의 MxN, 배추 개수 K, 배추 위치 좌표 (x,y)
-// output : 테케별 지렁이 최소 수
-
-// (0,0)부터 DFS 재귀호출 -> 인접한 네 칸 중 방문하지 않은 곳으로 이동.
+// - 지렁이는 인접한 배추를 이동함. (상하좌우)
+// - 군데군데 심어져있는 모든 배추를 보호하려면 지렁이는 최소 몇마리?
+// - input : 테스트케이스 T, 배추밭 MxN, 배추개수K, 배추위치(X,Y)
+// ⇒ 컴포넌트 개수 구하는 것과 동일한 유형
 
 const fs = require("fs");
-const [T, ...rest] = fs.readFileSync(0).toString().trim().split("\n");
-let t = +T;
+const [input, ...rest] = fs
+  .readFileSync(0)
+  .toString()
+  .trim()
+  .split("\n");
+let t = +input;
+
+const dir = [
+  [0, 1],
+  [0, -1],
+  [1, 0],
+  [-1, 0],
+];
+
+const answer = [];
 while (t--) {
-  let count = 0;
-  // 필요한 요소 추출하면서 rest 원본 자르기
-  const [m, n, k] = rest
-    .splice(0, 1)[0]
-    .split(" ")
-    .map((w) => +w);
+  const [행, 열, 배추수] = rest.splice(0, 1)[0].split(" ").map(Number);
+  const 배추위치 = rest.splice(0, 배추수).map((v) => v.split(" ").map(Number));
 
-  // grid 초기화 후 채우기
-  const grid = Array.from({ length: m }, () =>
-    Array.from({ length: n }, () => 0)
+  // 방문배열 초기화
+  // 🧨 좌표 문제의 경우, 인접리스트를 관리할 필요 없음 (상하좌우인걸 아니까!)
+  const visited = Array.from({ length: 행 }, () =>
+    Array.from({ length: 열 }, () => true)
   );
 
-  rest
-    .splice(0, k)
-    .map((v) => v.split(" ").map((w) => +w))
-    .map(([x, y]) => {
-      grid[x][y] = 1;
-    });
-
-  // visited 배열 초기화
-  const visited = Array.from({ length: m }, () =>
-    Array.from({ length: n }, () => false)
-  );
-
-  // DFS 함수
   const dfs = (x, y) => {
-    //1. 방문 체크
     visited[x][y] = true;
-
-    //2. 인접한 노드 중 이동 가능한 곳으로 재귀 호출
-    const dir = [
-      [0, -1],
-      [0, 1],
-      [-1, 0],
-      [1, 0],
-    ];
-
-    dir.forEach(([dx, dy]) => {
-      if (
-        x + dx >= 0 &&
-        x + dx < m &&
-        y + dy >= 0 &&
-        y + dy < n &&
-        grid[x + dx][y + dy] === 1 &&
-        !visited[x + dx][y + dy]
-      ) {
-        dfs(x + dx, y + dy);
-      }
+    dir.map(([dx, dy]) => {
+      const [newx, newy] = [x + dx, y + dy];
+      if (newx < 0 || newx >= 행 || newy < 0 || newy >= 열) return;
+      if (visited[newx][newy]) return;
+      dfs(newx, newy);
     });
   };
 
-  // 모든 노드에 대해 DFS 재귀호출하여 컴포넌트 수 구하기
   const solution = () => {
-    for (let i = 0; i < m; i++) {
-      for (let j = 0; j < n; j++) {
-        if (grid[i][j] === 1 && !visited[i][j]) {
-          count++;
-          dfs(i, j);
-        }
+    // visited 배열에 배추 있는 곳만 false로 뚫기
+    배추위치.map(([x, y]) => {
+      visited[x][y] = false;
+    });
+
+    let countBugs = 0;
+    for (let i = 0; i < 행; i++) {
+      for (let j = 0; j < 열; j++) {
+        if (visited[i][j]) continue; // 🧨for문에서 return 쓰지 말기 주의! map과 혼동 X.
+        dfs(i, j);
+        countBugs++;
       }
     }
-
-    return count;
+    answer.push(countBugs);
   };
-
-  console.log(solution());
+  solution();
 }
+console.log(answer.join("\n"));
