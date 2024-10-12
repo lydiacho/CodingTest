@@ -1,118 +1,110 @@
-// 불 : 매 초마다 동서남북으로 한 칸씩 번짐, 벽에는 불이 붙지 않음
-// 상근 : 매 초마다 동서남북으로 한 칸씩 이동 가능
-// 상근 : 벽, 불이난 곳, "불이 번질 곳"에 이동 불가능, 불이 번짐과 동시에 다른 칸으로 이동 가능
-// 최대한 빨리 빌딩 탈출하기
-// input : 테케 수(1~100), 빌딩 지도의 너비w높이h, hxw의 지도grid
-// output : 가장 빨리 탈출하는 초 수 or IMPOSSIBLE
-
-// 매 초마다 불의 위치를 나타내는 fire grid 관리
-// 현재 위치에서 동서남북 위치 중, 1) 벽이 아니고 2) 불난 곳 아니고 3) 방문한 곳 아니고 4) 불난 곳의 동서남북도 아닌 곳 -> 큐에 push
-// 만약 현재 위치가 1) 건물의 모서리이고 2) 빈공간'.'이면 -> 탈출
-// 관건 : 불 번지는 것을 어떻게 관리할 것이냐.
-
-class Queue {
-  constructor() {
-    this.queue = [];
-    this.head = 0;
-    this.tail = 0;
-  }
-
-  push(v) {
-    this.queue.push(v);
-    this.tail++;
-  }
-
-  pop() {
-    const front = this.queue[this.head];
-    this.head++;
-    return front;
-  }
-
-  size() {
-    return this.tail - this.head;
-  }
-}
+// - 불은 매초마다 인접한 공간으로 퍼짐. 벽에는 불 안붙음.
+// - 상근이도 인접한 칸으로 이동하고 1초 걸림.
+// - 벽, 불, 불이 붙으려는 칸으로 이동 불가. 최대한 빨리 탈출하기
+// - . 빈공간, # 벽, @ 시작 지점, * 불
+// - output : 탈출 최단 시간, 탈출 불가할 경우 “IMPOSSIBLE”
+// 6:41 ~
 
 const fs = require("fs");
-const [T, ...rest] = fs.readFileSync(0).toString().trim().split("\n");
+const [T, ...input] = fs
+  .readFileSync(0)
+  .toString()
+  .trim()
+  .split("\n");
 let t = +T;
+let 시작지점;
+const print = (arr) => {
+  let answer = "";
 
-while (t--) {
-  const [w, h] = rest
-    .splice(0, 1)[0]
-    .split(" ")
-    .map((v) => +v);
-  const grid = rest.splice(0, h).map((v) => v.split(""));
+  arr.map((v) => {
+    v.map((w) => (answer += w ? "." : "o"));
+    answer += "\n";
+  });
 
-  const solution = () => {
-    const q = new Queue();
-    const fireQ = new Queue();
+  console.log(answer);
+};
+const bfs = () => {
+  const [너비, 높이] = input.splice(0, 1)[0].split(" ").map(Number);
+  const 지도 = input.splice(0, 높이).map((v) => v.split(""));
+  const q = [];
+  const 불q = [];
+  let head = 0;
+  let 불head = 0;
+  const dir = [
+    [0, 1],
+    [0, -1],
+    [1, 0],
+    [-1, 0],
+  ];
 
-    const visited = Array.from({ length: h }, () =>
-      Array.from({ length: w }, () => 0)
-    );
-
-    // 불 배열 초기화, 첫 위치 push
-    for (let i = 0; i < h; i++) {
-      for (let j = 0; j < w; j++) {
-        if (grid[i][j] === "*") {
-          fireQ.push([i, j]);
-          visited[i][j] = 1;
-        } else if (grid[i][j] === "@") {
-          q.push([i, j]);
-          visited[i][j] = 2;
-        } else if (grid[i][j] === "#") {
-          visited[i][j] = 1;
-        }
+  const visited = 지도.map((w, 높이idx) =>
+    w.map((v, 너비idx) => {
+      if (v === "#") return true;
+      if (v === "*") {
+        불q.push([높이idx, 너비idx]);
+        return true;
       }
+      if (v === "@") 시작지점 = [높이idx, 너비idx];
+      return false;
+    })
+  );
+
+  q.push(시작지점);
+  visited[시작지점[0]][시작지점[1]] = true;
+
+  let count = 0;
+  while (q.length > head) {
+    // 큐에 쌓여있는 불 퍼지게 만들기
+    let 불size = 불q.length - 불head;
+    for (let i = 0; i < 불size; i++) {
+      const [불x, 불y] = 불q[불head];
+      불head++;
+      dir.map(([dx, dy]) => {
+        const [new불x, new불y] = [불x + dx, 불y + dy];
+        if (new불x < 0 || new불x >= 높이 || new불y < 0 || new불y >= 너비)
+          return;
+        if (visited[new불x][new불y]) return;
+        visited[new불x][new불y] = true;
+        불q.push([new불x, new불y]);
+      });
     }
 
-    // bfs 실행
-    let count = 0;
-    const dir = [
-      [0, 1],
-      [0, -1],
-      [1, 0],
-      [-1, 0],
-    ];
+    let size = q.length - head;
+    for (let i = 0; i < size; i++) {
+      const [현재x, 현재y] = q[head];
+      head++;
 
-    while (fireQ.size() || q.size()) {
-      // 불 번짐
-      for (let i = fireQ.size(); i > 0; i--) {
-        const [x, y] = fireQ.pop();
-        dir.forEach(([dx, dy]) => {
-          const [newx, newy] = [x + dx, y + dy];
-          if (
-            newx < 0 ||
-            newx >= h ||
-            newy < 0 ||
-            newy >= w ||
-            visited[newx][newy] === 1
-          )
-            return;
-          visited[newx][newy] = 1;
-          fireQ.push([newx, newy]);
-        });
+      // 종료조건
+      if (
+        현재x === 0 ||
+        현재x === 높이 - 1 ||
+        현재y === 0 ||
+        현재y === 너비 - 1
+      ) {
+        return count + 1;
       }
 
-      for (let i = q.size(); i > 0; i--) {
-        const [nowx, nowy] = q.pop();
-        // 종료 조건
-        if (nowx === 0 || nowx === h - 1 || nowy === 0 || nowy === w - 1)
-          return count + 1;
+      dir.map(([dx, dy]) => {
+        const [newx, newy] = [현재x + dx, 현재y + dy];
+        if (newx < 0 || newx >= 높이 || newy < 0 || newy >= 너비) return;
+        if (visited[newx][newy]) return;
 
-        dir.forEach(([dx, dy]) => {
-          const x = nowx + dx;
-          const y = nowy + dy;
-          if (x < 0 || x >= h || y < 0 || y >= w || visited[x][y]) return;
-          q.push([x, y]);
-          visited[x][y] = 2;
-        });
-      }
-      count++;
+        q.push([newx, newy]);
+        visited[newx][newy] = true;
+      });
     }
-    return "IMPOSSIBLE";
-  };
+    count++;
+  }
+  return "IMPOSSIBLE";
+};
 
-  console.log(solution());
-}
+const solution = () => {
+  const answer = [];
+
+  while (t--) {
+    answer.push(bfs());
+  }
+  return answer.join("\n");
+};
+
+console.log(solution());
