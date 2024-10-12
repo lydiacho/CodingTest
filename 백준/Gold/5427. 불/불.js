@@ -3,7 +3,6 @@
 // - 벽, 불, 불이 붙으려는 칸으로 이동 불가. 최대한 빨리 탈출하기
 // - . 빈공간, # 벽, @ 시작 지점, * 불
 // - output : 탈출 최단 시간, 탈출 불가할 경우 “IMPOSSIBLE”
-// 6:41 ~
 
 const fs = require("fs");
 const [T, ...input] = fs
@@ -12,17 +11,7 @@ const [T, ...input] = fs
   .trim()
   .split("\n");
 let t = +T;
-let 시작지점;
-const print = (arr) => {
-  let answer = "";
 
-  arr.map((v) => {
-    v.map((w) => (answer += w ? "." : "o"));
-    answer += "\n";
-  });
-
-  console.log(answer);
-};
 const bfs = () => {
   const [너비, 높이] = input.splice(0, 1)[0].split(" ").map(Number);
   const 지도 = input.splice(0, 높이).map((v) => v.split(""));
@@ -44,17 +33,17 @@ const bfs = () => {
         불q.push([높이idx, 너비idx]);
         return true;
       }
-      if (v === "@") 시작지점 = [높이idx, 너비idx];
+      if (v === "@") {
+        q.push([높이idx, 너비idx]);
+        return true;
+      }
       return false;
     })
   );
 
-  q.push(시작지점);
-  visited[시작지점[0]][시작지점[1]] = true;
-
-  let count = 0;
+  let count = 0; // Timer
   while (q.length > head) {
-    // 큐에 쌓여있는 불 퍼지게 만들기
+    // 큐에 쌓여있는 불 "먼저" 퍼지게 만들기
     let 불size = 불q.length - 불head;
     for (let i = 0; i < 불size; i++) {
       const [불x, 불y] = 불q[불head];
@@ -69,6 +58,7 @@ const bfs = () => {
       });
     }
 
+    // 상근이 이동
     let size = q.length - head;
     for (let i = 0; i < size; i++) {
       const [현재x, 현재y] = q[head];
