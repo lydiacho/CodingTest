@@ -1,26 +1,20 @@
-// 정수 N이 3의 배수이면 3으로 나눔 , 2의 배수이면 2로 나눔 , 1을 뺌
-// 연산 세개를 활용해서 1 만들기. 연산의 최소 횟수 구하기
-// input : 정수 N (1~10^6)
-// output : 연산 횟수 최솟값
-
-// N부터 세가지 연산을 모두 계산하기를 반복 -> 단, 메모이제이션을 통해 시간 절약
-
-// 🧨 재귀호출 사용 시 런타임에러가 발생해 반복문 사용하도록 수정
-
 const fs = require("fs");
-const N = fs.readFileSync(0).toString().trim();
+const N = +fs.readFileSync(0).toString().trim();
 
-const solution = (n) => {
-  const mem = new Array(1000001).fill(-1);
+const solution = () => {
+  const mem = Array.from({ length: N + 1 }, () => -1); // i수를 1까지 만드는데에 필요한 최소 연산 횟수
   mem[1] = 0;
-
-  for (let i = 1; i < n; i++) {
-    const newVal = mem[i] + 1;
-    mem[i + 1] = mem[i + 1] !== -1 ? Math.min(mem[i + 1], newVal) : newVal;
-    mem[i * 2] = mem[i * 2] !== -1 ? Math.min(mem[i * 2], newVal) : newVal;
-    mem[i * 3] = mem[i * 3] !== -1 ? Math.min(mem[i * 3], newVal) : newVal;
+  for (let i = 1; i <= N; i++) {
+    let min = mem[i - 1];
+    if (i % 2 === 0) {
+      min = Math.min(min, mem[i / 2]);
+    }
+    if (i % 3 === 0) {
+      min = Math.min(min, mem[i / 3]);
+    }
+    mem[i] = min + 1;
   }
-  return mem[n];
+  return mem[N];
 };
 
-console.log(solution(+N));
+console.log(solution());
