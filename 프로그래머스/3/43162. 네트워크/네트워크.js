@@ -1,26 +1,24 @@
-// 그래프 개수 구하기 문제 -> 탐색하다가 나 자신에게 돌아오면 count + 1하기 
+// 연결 그래프의 개수, 
 function solution(n, computers) {
     let count = 0
-    const visited = new Array(n).fill(false)
+    const visited = Array.from({length: n}).fill(false)
     
-    function bfs(idx) {
-        console.log("bfs 실행 : ", idx)
-        visited[idx] = true // 방문 표시 
-        computers[idx].forEach((v, i) => {
-            if (v=== 0 || i===idx || visited[i]) {
-                return
-            }
-            bfs(i)
-        })
+    function dfs(idx) {
+        visited[idx] = true
+        for (let k = 0; k < n; k++) {
+            if (k===idx || computers[idx][k]===0 || visited[k]) continue
+            dfs(k)
+        }
+        
     }
     
-    for (let k = 0; k < n ; k++) {
-        if (!visited[k]) {
-            bfs(k)
-            count++            
+    for(let i = 0; i < n; i++) {
+        if (!visited[i]) {
+            count++
+            dfs(i)
         }
     }
     
-    return count
     
+    return count
 }
