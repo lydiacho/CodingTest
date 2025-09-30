@@ -5,13 +5,13 @@ function solution(numbers, target) {
             if (sum === target) {
                 count++
             }
-            return
+            return 
         }
         dfs(sum+numbers[i], i+1)
         dfs(sum-numbers[i], i+1)
     }
     
-    dfs(0, 0)
-    return count
+    dfs(0,0)
     
+    return count
 }
